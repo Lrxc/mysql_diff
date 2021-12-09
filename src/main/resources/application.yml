@@ -1,0 +1,28 @@
+# 服务器配置
+server:
+  port: 8080
+
+spring:
+#  datasource:
+#    url: jdbc:mysql://10.41.224.71:3306/ssm
+#    username: root
+#    password: root
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+  # 数据库配置
+  second-datasource:
+    jdbc-url: jdbc:mysql://10.41.224.71:3306/ssm
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  # 数据库配置
+  first-datasource:
+    jdbc-url: jdbc:mysql://10.41.224.105:10000/test
+    username: root
+    password: 9784!2d155#74aea
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+logging:
+  level:
+    root: warn
+    com.example.mapper: debug
