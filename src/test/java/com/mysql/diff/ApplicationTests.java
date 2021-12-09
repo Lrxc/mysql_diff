@@ -1,10 +1,10 @@
-package com.example;
+package com.mysql.diff;
 
-import com.example.pojo.Config;
-import com.example.pojo.SchemaSync;
-import com.example.pojo.TableAlterData;
-import com.example.service.DbService;
-import com.example.service.SyncDataService;
+import com.mysql.diff.pojo.Config;
+import com.mysql.diff.pojo.SchemaSync;
+import com.mysql.diff.pojo.TableAlterData;
+import com.mysql.diff.service.DbService;
+import com.mysql.diff.service.SyncDataService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,12 +48,5 @@ class ApplicationTests {
 
             syncDataService.syncData(tableName);
         }
-    }
-
-    @Test
-    void contextLoads() throws Exception {
-        String str = "KEY `idx_id` (`username`)";
-        System.out.println(str.matches("KEY `.*` \\(`.*`\\)"));
-        System.out.println(Pattern.matches("KEY `.*` (`.*`)", str));
     }
 }

@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
-    <artifactId>6_sql_diff</artifactId>
+    <artifactId>mysql_diff</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <parent>

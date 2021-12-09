@@ -1,4 +1,4 @@
-package com.example.constant;
+package com.mysql.diff.constant;
 
 public interface KeyEnum {
 

@@ -1,8 +1,8 @@
-package com.example.service;
+package com.mysql.diff.service;
 
 import cn.hutool.json.JSONUtil;
-import com.example.constant.KeyEnum;
-import com.example.pojo.*;
+import com.mysql.diff.constant.KeyEnum;
+import com.mysql.diff.pojo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -16,12 +16,11 @@ import java.util.stream.Collectors;
 @Service
 public class DbService {
 
-    @Autowired// 默认数据源
-    private JdbcTemplate jdbcTemplate;
-
     @Autowired
-    @Qualifier("secondJdbcTemplate")//不指定则使用默认数据源
-    private JdbcTemplate secondJdbcTemplate;
+    private JdbcTemplate sourceJdbcTemplate;
+    @Autowired
+    @Qualifier("targetJdbcTemplate")//不指定则使用默认数据源
+    private JdbcTemplate targetJdbcTemplate;
 
     /**
      * 获取所有的表信息
@@ -29,10 +28,10 @@ public class DbService {
     public SchemaSync getDbInfo() {
         System.out.println(("----- getDbInfo ------"));
 
-        List<Map<String, Object>> source = jdbcTemplate.queryForList("show table status");
+        List<Map<String, Object>> source = sourceJdbcTemplate.queryForList("show table status");
         List<DbInfo> sourceDb = JSONUtil.toList(JSONUtil.toJsonStr(source), DbInfo.class);
 
-        List<Map<String, Object>> desc = secondJdbcTemplate.queryForList("show table status");
+        List<Map<String, Object>> desc = targetJdbcTemplate.queryForList("show table status");
         List<DbInfo> destDb = JSONUtil.toList(JSONUtil.toJsonStr(desc), DbInfo.class);
 
         SchemaSync schemaSync = new SchemaSync();
@@ -56,13 +55,13 @@ public class DbService {
 
         String sSchema = "";
         try {
-            Map<String, Object> map = jdbcTemplate.queryForMap("show create table " + table);
+            Map<String, Object> map = sourceJdbcTemplate.queryForMap("show create table " + table);
             sSchema = map.get("Create Table").toString();
         } catch (DataAccessException ignored) {
         }
         String dSchema = "";
         try {
-            Map<String, Object> map = secondJdbcTemplate.queryForMap("show create table " + table);
+            Map<String, Object> map = targetJdbcTemplate.queryForMap("show create table " + table);
             dSchema = map.get("Create Table").toString();
         } catch (DataAccessException ignored) {
         }
@@ -344,7 +343,7 @@ public class DbService {
     public void syncSQL4Dest(String tableName, String sql) {
         try {
             System.out.println("sql sync " + tableName);
-            secondJdbcTemplate.execute(sql);
+            sourceJdbcTemplate.execute(sql);
             System.out.println("sql sync success");
         } catch (DataAccessException e) {
             System.out.println("sql sync error! " + e.getMessage());

@@ -1,4 +1,4 @@
-package com.example.pojo;
+package com.mysql.diff.pojo;
 
 public interface Config {
 
