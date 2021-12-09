@@ -17,21 +17,20 @@ import java.util.stream.Collectors;
 public class DbService {
 
     @Autowired
-    private JdbcTemplate sourceJdbcTemplate;
+    private JdbcTemplate destJdbcTemplate;
     @Autowired
-    @Qualifier("targetJdbcTemplate")//不指定则使用默认数据源
-    private JdbcTemplate targetJdbcTemplate;
+    @Qualifier("sourceJdbcTemplate")//不指定则使用默认数据源
+    private JdbcTemplate sourceJdbcTemplate;
 
     /**
      * 获取所有的表信息
      */
     public SchemaSync getDbInfo() {
-        System.out.println(("----- getDbInfo ------"));
 
-        List<Map<String, Object>> source = sourceJdbcTemplate.queryForList("show table status");
+        List<Map<String, Object>> source = destJdbcTemplate.queryForList("show table status");
         List<DbInfo> sourceDb = JSONUtil.toList(JSONUtil.toJsonStr(source), DbInfo.class);
 
-        List<Map<String, Object>> desc = targetJdbcTemplate.queryForList("show table status");
+        List<Map<String, Object>> desc = sourceJdbcTemplate.queryForList("show table status");
         List<DbInfo> destDb = JSONUtil.toList(JSONUtil.toJsonStr(desc), DbInfo.class);
 
         SchemaSync schemaSync = new SchemaSync();
@@ -41,6 +40,9 @@ public class DbService {
         return schemaSync;
     }
 
+    /**
+     * 获取两个数据库的所有表名
+     */
     public List<String> getTableNames(SchemaSync schemaSync) {
         System.out.println(("----- getTableNames ------"));
 
@@ -51,18 +53,18 @@ public class DbService {
         return new ArrayList<>(sourceTableNames);
     }
 
-    public TableAlterData getAlterDataByTable(SchemaSync schemaSync, String table) {
+    public TableAlterData getAlterDataByTable(String table) {
 
+        String dSchema = "";
+        try {
+            Map<String, Object> map = destJdbcTemplate.queryForMap("show create table " + table);
+            dSchema = map.get("Create Table").toString();
+        } catch (DataAccessException ignored) {
+        }
         String sSchema = "";
         try {
             Map<String, Object> map = sourceJdbcTemplate.queryForMap("show create table " + table);
             sSchema = map.get("Create Table").toString();
-        } catch (DataAccessException ignored) {
-        }
-        String dSchema = "";
-        try {
-            Map<String, Object> map = targetJdbcTemplate.queryForMap("show create table " + table);
-            dSchema = map.get("Create Table").toString();
         } catch (DataAccessException ignored) {
         }
 
@@ -75,6 +77,7 @@ public class DbService {
         alter.setTable(table);
         alter.setType("iota");
         alter.setSchemaDiff(schemaDiff);
+        alter.setSQL(new ArrayList<>());
 
 
         if (dSchema.equals(sSchema)) {
@@ -83,13 +86,13 @@ public class DbService {
 
         if ("".equals(sSchema)) {
             alter.setType("alterTypeDrop");
-            alter.setSQL(alter.getSQL().stream().map(sql -> sql + "drop table " + table).collect(Collectors.toList()));
+            alter.getSQL().add("drop table `" + table + "`");
             return alter;
         }
 
         if ("".equals(dSchema)) {
             alter.setType("alterTypeCreate");
-            alter.setSQL(List.of(sSchema));
+            alter.getSQL().add(sSchema);
             return alter;
         }
 
@@ -143,7 +146,7 @@ public class DbService {
         dest.getFields().forEach((key, value) -> {
             String s = source.getFields().get(key);
             if (s == null) {
-                String alterSQL = "DROP " + key;
+                String alterSQL = "DROP `" + key + "`";
                 alterLines.add(alterSQL);
             }
         });
@@ -340,13 +343,14 @@ public class DbService {
      * @param tableName tableName
      * @param sql       sql
      */
-    public void syncSQL4Dest(String tableName, String sql) {
+    public void syncSQL2Dest(String tableName, String sql) {
         try {
-            System.out.println("sql sync " + tableName);
-            sourceJdbcTemplate.execute(sql);
-            System.out.println("sql sync success");
+            System.out.println("------------------sql sync " + tableName);
+            destJdbcTemplate.execute(sql);
+            System.out.println("------------------sql sync success");
         } catch (DataAccessException e) {
-            System.out.println("sql sync error! " + e.getMessage());
+            System.out.println("------------------sql sync error!\n " + sql);
+            e.printStackTrace();
         }
     }
 }

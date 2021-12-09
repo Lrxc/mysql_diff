@@ -14,26 +14,26 @@ import javax.sql.DataSource;
 public class DataSourceConfig {
 
     @Primary
-    @Bean(name = "sourceDatasource")
-    @ConfigurationProperties(prefix = "spring.source-datasource")
+    @Bean(name = "destDatasource")
+    @ConfigurationProperties(prefix = "spring.dest-datasource")
     DataSource dataSource() {
         return DataSourceBuilder.create().build();
     }
 
-    @Bean(name = "targetDatasource")
-    @ConfigurationProperties(prefix = "spring.target-datasource")
+    @Bean(name = "sourceDatasource")
+    @ConfigurationProperties(prefix = "spring.source-datasource")
     DataSource DataSource() {
         return DataSourceBuilder.create().build();
     }
 
     @Primary
-    @Bean(name = "sourceJdbcTemplate")
-    JdbcTemplate sourceJdbcTemplate(@Qualifier("sourceDatasource") DataSource localDataSource) {
-        return new JdbcTemplate(localDataSource);
+    @Bean(name = "destJdbcTemplate")
+    JdbcTemplate jdbcTemplate(@Qualifier("destDatasource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
     }
 
-    @Bean(name = "targetJdbcTemplate")
-    JdbcTemplate targetJdbcTemplate(@Qualifier("targetDatasource") DataSource ctDataSource) {
-        return new JdbcTemplate(ctDataSource);
+    @Bean(name = "sourceJdbcTemplate")
+    JdbcTemplate sourceJdbcTemplate(@Qualifier("sourceDatasource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
     }
 }

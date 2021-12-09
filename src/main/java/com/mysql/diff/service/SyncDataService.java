@@ -17,16 +17,16 @@ import java.util.Map;
 public class SyncDataService {
 
     @Autowired
-    private JdbcTemplate sourceJdbcTemplate;
+    private JdbcTemplate destJdbcTemplate;
     @Autowired
-    @Qualifier("targetJdbcTemplate")//不指定则使用默认数据源
-    private JdbcTemplate targetJdbcTemplate;
+    @Qualifier("sourceJdbcTemplate")//不指定则使用默认数据源
+    private JdbcTemplate sourceJdbcTemplate;
 
 
     public void syncData(String tableName) {
 
-        List<Map<String, Object>> lists1 = sourceJdbcTemplate.queryForList("select * from " + tableName);
-        List<Map<String, Object>> lists2 = targetJdbcTemplate.queryForList("select * from " + tableName);
+        List<Map<String, Object>> lists1 = destJdbcTemplate.queryForList("select * from " + tableName);
+        List<Map<String, Object>> lists2 = sourceJdbcTemplate.queryForList("select * from " + tableName);
 
         String jsonStr = JSONUtil.toJsonStr(lists1);
 
